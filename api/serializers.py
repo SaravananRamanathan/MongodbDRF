@@ -22,7 +22,10 @@ class customUserSerializer(serializers.ModelSerializer):
 
 
 class productSerializer(serializers.ModelSerializer):
- 
+    
+    
     class Meta:
         model = Product
-        fields = '__all__'
+        #fields = '__all__' 
+        fields = ['id','user_id','name','price','color']
+        #exclude=['user']

@@ -1,4 +1,5 @@
 from urllib import response
+from django.conf import UserSettingsHolder
 from django.shortcuts import render
 from rest_framework import generics,permissions
 from rest_framework.views import APIView
@@ -52,7 +53,7 @@ class signIn(APIView):
 
 class userView(APIView):
     def get(self,request):
-        ""
+        "ping...pong!"
         token = request.COOKIES.get('jwt')
 
         if not token:
@@ -60,7 +61,6 @@ class userView(APIView):
         try:
             payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
         except jwt.exceptions.ExpiredSignatureError:
-            ""
             raise AuthenticationFailed("Jwt Token expired")
         
         user = CustomUser.objects.filter(id=payload['id']).first()
@@ -79,8 +79,8 @@ class signOut(APIView):
 
 
 class getAllProduct(generics.ListAPIView):
-    ""
-    #specify a serializer class.
+    "displaying all of the products of the user"
+    """#dango rest api default token authentication method.
     serializer_class = productSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -88,3 +88,28 @@ class getAllProduct(generics.ListAPIView):
         user_id = self.request.user.id
         print(f"user id: {user_id}")
         return Product.objects.filter(id=user_id)
+    """
+    serializer_class = productSerializer
+    def get_queryset(self):
+        token = self.request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        
+        #users = CustomUser.objects.filter(id=payload['id']).first()
+        #serializer = customUserSerializer(users)
+        #print(serializer.data)
+        #print(serializer.data['id'])
+        product = Product.objects.filter(user_id=1)#serializer.data['id'])
+        print(product)
+        #serializer = productSerializer
+        #return Response(product)
+        #serializer = productSerializer(product,many=True)
+        #print(serializer.data)
+        #return Response(serializer.data)
+        
+        return product#Product.objects.get(user=user)
