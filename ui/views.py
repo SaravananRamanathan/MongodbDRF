@@ -16,4 +16,4 @@ def home(response):
 def imageHandler(response,image:str):
     ""
     print(image)
-    return render(response,"ui/images.html",{})
+    return render(response,"ui/images.html",{"image":image})

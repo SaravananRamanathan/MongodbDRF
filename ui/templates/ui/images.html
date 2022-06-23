@@ -1,29 +1,9 @@
-{% extends 'ui/base.html' %}
-{%block title%} Image {%endblock%}
-
-{%block mainHeading%} 
-<span class="navbar-text custom-white-text unselectable">Image</span>
-{%endblock%}
-
-{%block content%}
-<div class="row justify-content-left">
-    <div class="col-9">
-        <h2 class="mt-2 unselectable">Welcome, {{user.username}}</h2>
-        <hr class="mt-0 mb-4" style="background-color: white;">
-        <p>logged in</p>
-    </div>
-</div>
-{%endblock%}
-
-{%block notloggedin%}
-<div class="row justify-content-center">
-    <div class="col-9">
-        <h2 class="mt-2 unselectable">Welcome</h2>
-        <hr class="mt-0 mb-4" style="background-color: white;">
-        <div class="unselectable">
-            <p>not logged in</p>
-        </div>
-    </div>
-</div>
-{%endblock%}
-
+<html>
+    <head>
+        <title>{{image}}</title>
+    </head>
+    <body>
+        
+        <img src="http://127.0.0.1:8000/media/images/google1.png/"/>
+    </body>
+</html>
