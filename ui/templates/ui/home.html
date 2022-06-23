@@ -1,0 +1,34 @@
+{% extends 'ui/base.html' %}
+{%block title%} Home {%endblock%}
+
+{%block mainHeading%} 
+<span class="navbar-text custom-white-text unselectable">Home</span>
+{%endblock%}
+
+{%block content%}
+<div class="row justify-content-left">
+    <div class="col-9">
+        <h2 class="mt-2 unselectable">Welcome, {{user.username}}</h2>
+        <hr class="mt-0 mb-4" style="background-color: white;">
+        <p>Thank you for Registering with us.</p>
+        <p>This is a simple MongoDB-DRF Application designed for byte cipher Machine Test, its fully functional in all aspects.</p>
+        <p>Developed by: Saravanan Ramanathan.</p>
+        <p>Your Api-Access-Token is: {{token}}</p>
+    </div>
+</div>
+{%endblock%}
+
+{%block notloggedin%}
+<div class="row justify-content-center">
+    <div class="col-9">
+        <h2 class="mt-2 unselectable">Welcome</h2>
+        <hr class="mt-0 mb-4" style="background-color: white;">
+        <div class="unselectable">
+            <p>After you have registered with us, you will get a api token</p>
+            <p>The only way to use this site is via api's, you can use your token to make requests to api-endpoints</p>
+            <p>we will provide you more info after you have Successfully logged-in</p>
+        </div>
+    </div>
+</div>
+{%endblock%}
+

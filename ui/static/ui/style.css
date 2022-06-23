@@ -1,0 +1,84 @@
+:root{
+  font-size: 16px;
+  
+  --text-primary: #b6b6b6;
+  --text-secondary: #ececec;
+  --bg-primary: #23232e;
+  --bg-secondary: #141418; 
+  --transition-speed:600ms;
+}
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+body {
+font-family: 'Press Start 2P', cursive;
+overflow-x:hidden;/*no scroll bar*/
+color:var(--text-primary);
+/* background-image: url("background4.jpg"); */
+background-color: #000;
+margin:0;
+padding:0;
+}
+body::-webkit-scrollbar{
+  width:0.5rem;
+}
+body::-webkit-scrollbar-track{
+  background: var(--bg-secondary);
+}
+body::-webkit-scrollbar-thumb{
+  background: var(--bg-primary);
+}
+.custom-white-text{
+  color:white !important;
+}
+.custom-error-text{
+  color: #ff0000 !important;
+}
+.loginout{
+  right: 0;
+  position: fixed;
+}
+.navbar-text{
+  /*white-space: nowrap;*/
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  left:0;
+  margin-right: 8rem;
+  width: 75%;
+  position: fixed;
+}
+
+
+/*small screen*/
+@media only screen and (max-width:600px){
+  .topbar{
+    height: 3rem;
+    background-color: var(--bg-primary);
+    opacity: 0.8;
+  }
+  .custom-main{
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 5rem;
+  }
+  
+}
+
+/*mid size screens-like laptops*/
+@media only screen and (min-width:600px) {
+  .topbar{
+    height: 5rem;
+    background-color: var(--bg-secondary);
+    opacity: 0.8;
+  }
+  .custom-main{
+    margin-left:5rem;
+    /*padding:0.5rem;*/
+  }
+}
