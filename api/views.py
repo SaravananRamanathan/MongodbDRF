@@ -100,16 +100,7 @@ class getAllProduct(generics.ListAPIView):
         except jwt.exceptions.ExpiredSignatureError:
             raise AuthenticationFailed("Jwt Token expired")
         
-        #users = CustomUser.objects.filter(id=payload['id']).first()
-        #serializer = customUserSerializer(users)
-        #print(serializer.data)
-        #print(serializer.data['id'])
         product = Product.objects.filter(user_id=1)#serializer.data['id'])
         print(product)
-        #serializer = productSerializer
-        #return Response(product)
-        #serializer = productSerializer(product,many=True)
-        #print(serializer.data)
-        #return Response(serializer.data)
         
         return product#Product.objects.get(user=user)

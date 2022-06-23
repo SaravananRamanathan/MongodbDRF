@@ -12,8 +12,12 @@ class Product(models.Model):
         return self.name
 
 class productImages(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='productimages' , on_delete=models.CASCADE)
     images = models.FileField(upload_to = 'images/')
  
+    class Meta:
+        unique_together = ('product', 'id')
+        ordering = ['id']
+
     def __str__(self):
         return self.product.name

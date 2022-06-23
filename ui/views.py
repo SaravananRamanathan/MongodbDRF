@@ -12,3 +12,8 @@ def home(response):
             return render(response,"ui/home.html",{"token":token[0]})
     return render(response,"ui/home.html",{})
     return render(response,"ui/home.html",{}) #test ok.
+
+def imageHandler(response,image:str):
+    ""
+    print(image)
+    return render(response,"ui/images.html",{})

@@ -1,6 +1,5 @@
-from dataclasses import field
 from rest_framework import serializers 
-from ui.models import Product
+from ui.models import Product,productImages
 from userAccess.models import CustomUser  
 
 
@@ -20,12 +19,17 @@ class customUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class productImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=productImages
+        fields=['images']
 
 class productSerializer(serializers.ModelSerializer):
     
-    
+    productimages=productImageSerializer(many=True,read_only=True)
     class Meta:
         model = Product
         #fields = '__all__' 
-        fields = ['id','user_id','name','price','color']
+        fields = ('id','user_id','name','price','color','productimages')
         #exclude=['user']
+
