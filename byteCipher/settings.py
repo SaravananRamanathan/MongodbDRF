@@ -175,7 +175,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CORS_ORIGIN_ALLOW_ALL = True
-
+CROSS_ALLOW_CREDENTIALS=True
 
 #for accuracy with crispy
 CRISPY_TEMPLATE_PACK="bootstrap4"
