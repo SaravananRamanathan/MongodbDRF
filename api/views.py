@@ -1,15 +1,18 @@
+from functools import partial
+from math import prod
 from urllib import response
 from django.conf import UserSettingsHolder
 from django.shortcuts import render
 from rest_framework import generics,permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from ui.models import Product
 from .serializers import productSerializer,customUserSerializer
 from userAccess.models import CustomUser
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed,NotFound
 import jwt,datetime
-
+from django.db.models.deletion import ProtectedError 
 from api import serializers
 
 
@@ -99,8 +102,153 @@ class getAllProduct(generics.ListAPIView):
             payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
         except jwt.exceptions.ExpiredSignatureError:
             raise AuthenticationFailed("Jwt Token expired")
-        
-        product = Product.objects.filter(user_id=1)#serializer.data['id'])
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        serializer = customUserSerializer(users)
+        product = Product.objects.filter(user_id=serializer.data['id'])
         print(product)
         
         return product#Product.objects.get(user=user)
+
+class getAllProductById(generics.ListCreateAPIView):
+    serializer_class = productSerializer
+    def get_queryset(self):
+        token = self.request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        #print(users) #test ok
+        serializer = customUserSerializer(users)
+        #print(serializer.data['id'])  #test ok
+        #print(self.kwargs['id'])   #test ok
+
+        product = Product.objects.filter(user_id=serializer.data['id'],id=self.kwargs['id'])
+        if not product:
+            ""
+            raise NotFound("You dont have access to any product with that id.")
+        #print(product) #test ok!
+        return product
+
+
+#my custom destroy mixin.
+class DestroyModelMixin(object):
+    """
+    Destroy a model instance.
+    """
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError as e:
+            return Response(status=status.HTTP_423_LOCKED, data={'detail':str(e)})
+        #return Response(status=status.HTTP_204_NO_CONTENT) #this is django default...
+        #custom Response return on deletion.
+        return Response({'message':'Deleted Successfully'})
+
+    def perform_destroy(self, instance):
+        instance.delete()
+class deleteProduct(DestroyModelMixin,generics.DestroyAPIView):
+    serializer_class = productSerializer
+    #lookup_url_kwarg = pk
+    lookup_field="id"
+    def get_queryset(self):
+        token = self.request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        #print(users) #test ok
+        serializer = customUserSerializer(users)
+        #print(serializer.data['id'])  #test ok
+        #print(self.kwargs['id'])   #test ok
+        product = Product.objects.filter(user_id=serializer.data['id'],id=self.kwargs['id'])
+        print(product)
+        if not product:
+            ""
+            raise NotFound("You dont have access to any product with that id.")
+        #print(product) #test ok!
+        #product.delete()
+        response = Response()
+        response.content = product
+        response.data={
+            'message':'Deleted successfully.'
+        }
+        #return response
+        return product
+
+
+#Custom update mixin.
+class UpdateModelMixin:
+    """
+    Update a model instance.
+    """
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True) #default is False #making partial edits as default
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        #print(request.data['productimages'])
+        for image in request.data['productimages']:
+            print(image['images'])
+        self.perform_update(serializer) 
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+class editProduct(UpdateModelMixin,generics.UpdateAPIView):
+    serializer_class = productSerializer
+    #lookup_url_kwarg = pk
+    lookup_field="id"
+    def get_queryset(self):
+        
+        token = self.request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        #print(users) #test ok
+        serializer = customUserSerializer(users)
+        #print(serializer.data['id'])  #test ok
+        #print(self.kwargs['id'])   #test ok
+        product = Product.objects.filter(user_id=serializer.data['id'],id=self.kwargs['id'])
+        #print(product) #test ok.
+        if not product:
+            ""
+            raise NotFound("You dont have access to any product with that id.")
+
+        #saved_article = get_object_or_404(Article.objects.all(), pk=pk)
+
+        # name = self.request.data.get('name')
+        # serializer = productSerializer(instance=product, name=name, partial=True)
+        # if serializer.is_valid(raise_exception=True):
+        #     ""
+        #     return serializer
+
+        #article_saved = serializer.save()
+        #return Response({"success": "Article '{}' updated successfully".format(article_saved.title)})
+
+        """response = Response()
+        response.data={
+            'message':'test message.'
+        }"""
+        return product

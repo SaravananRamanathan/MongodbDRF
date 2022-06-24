@@ -21,6 +21,15 @@ urlpatterns = [
 
     #get all product 
     path("getAllProduct/",views.getAllProduct.as_view()),
+
+    #get the product based on id sent, if the user has access to that id.
+    re_path("getAllProductById/(?P<id>\w+)$",views.getAllProductById.as_view()),
+
+    #delete product based on id sent, if the user has access to that id.
+    re_path("deleteProduct/(?P<id>\w+)$",views.deleteProduct.as_view()),
+
+    #edit product based on id sent, if the user has access to that id.
+    re_path("editProduct/(?P<id>\w+)$",views.editProduct.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
