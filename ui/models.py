@@ -19,5 +19,6 @@ class productImages(models.Model):
         unique_together = ('product', 'id')
         ordering = ['id']
 
-    def __str__(self):
+    """def __str__(self):
         return self.product.name
+        """

@@ -7,15 +7,19 @@ from rest_framework import generics,permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from ui.models import Product
+from ui.models import Product,productImages
 from .serializers import productSerializer,customUserSerializer
 from userAccess.models import CustomUser
 from rest_framework.exceptions import AuthenticationFailed,NotFound
 import jwt,datetime
 from django.db.models.deletion import ProtectedError 
 from api import serializers
-
-
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+import tempfile
+import  urllib.request 
+import requests
+from PIL import Image
 class signUp(APIView):
     def post(self,request):
         "allow users to sign up via api"
@@ -193,9 +197,52 @@ class UpdateModelMixin:
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        #print(request.data['productimages'])
-        for image in request.data['productimages']:
-            print(image['images'])
+        #print(request.data['productimages']) #test ok.
+        
+        #custom image part
+        temp = productImages
+        #print(temp)
+        tempSerializer = self.get_serializer(instance)
+        print(tempSerializer.data['id']) #test ok.
+        #now getting all the images for a perticular product.
+        images=temp.objects.filter(product_id=tempSerializer.data['id'])
+        ourImageCount=0
+        for image in images:
+            "tatking the count of total images for the product."
+            ourImageCount+=1
+            #print(image.images)
+        print(f"outImageCount={ourImageCount}") #test ok.
+        sentImageCount=0
+        for sentImage in request.data['productimages']:
+            sentImageCount+=1
+            #print(f"sentImage: {sentImage['images']}")
+        print(f"sentImageCount={sentImageCount}")
+        count=0
+        if sentImageCount>0 and ourImageCount>0:
+            for image in images:
+                print(f"our-image: {image.images}")
+                print(f"sent-image: {request.data['productimages'][count]['images']}")
+                #save image-
+                
+                count+=1;
+                if(count>sentImageCount):
+                    break;
+            #print(f"ourImage: {image.images}")
+            #img_temp = tempfile.NamedTemporaryFile(delete=True)
+            #img_temp.write(urllib.request.urlopen(image).read())
+            #r = requests.get(image['images'] , stream=True)
+            #r.raw.decode_content = True # handle spurious Content-Encoding
+            #im = Image.open(r.raw)
+
+            #print(Image.open(r.raw)) #test ok
+
+            #img_temp.write(Image.open(r.raw))
+            #img_temp.flush()
+            
+            #im.file.save("productImage", File(img_temp))
+
+
+        #performing both product and product images update.
         self.perform_update(serializer) 
 
         if getattr(instance, '_prefetched_objects_cache', None):
