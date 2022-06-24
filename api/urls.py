@@ -30,6 +30,12 @@ urlpatterns = [
 
     #edit product based on id sent, if the user has access to that id.
     re_path("editProduct/(?P<id>\w+)$",views.editProduct.as_view()),
+
+    #add new products based on used id
+    path("addProduct/",views.addProduct.as_view()),
+
+    #search products via keywords , if they have access to it.
+    re_path("searchProduct/((?P<keyword>\w+)=(?P<value>\w+))?",views.searchProduct.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -33,3 +33,11 @@ class productSerializer(serializers.ModelSerializer):
         fields = ('id','user_id','name','price','color','productimages')
         #exclude=['user']
 
+class productCreateSerializer(serializers.ModelSerializer):
+    users=customUserSerializer(read_only=True)
+    productimages=productImageSerializer(many=True,read_only=True)
+    class Meta:
+        model = Product
+        #fields = '__all__' 
+        fields = ('id','user_id','name','price','color','productimages','users')
+        #exclude=['user']

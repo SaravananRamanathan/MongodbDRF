@@ -1,3 +1,4 @@
+from ast import match_case
 from functools import partial
 from math import prod
 from urllib import response
@@ -8,12 +9,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from ui.models import Product,productImages
-from .serializers import productSerializer,customUserSerializer
+from .serializers import productSerializer,customUserSerializer,productCreateSerializer
 from userAccess.models import CustomUser
-from rest_framework.exceptions import AuthenticationFailed,NotFound
+from rest_framework.exceptions import AuthenticationFailed,NotFound,NotAcceptable
 import jwt,datetime
 from django.db.models.deletion import ProtectedError 
-from api import serializers
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 import tempfile
@@ -21,6 +21,7 @@ import  urllib.request
 import requests
 from PIL import Image
 import urllib
+from rest_framework.settings import APISettings,DEFAULTS,IMPORT_STRINGS
 #import djangocorefilesbase.ContentFile
 from django.core.files.base import ContentFile
 class signUp(APIView):
@@ -216,9 +217,10 @@ class UpdateModelMixin:
             #print(image.images)
         print(f"outImageCount={ourImageCount}") #test ok.
         sentImageCount=0
-        for sentImage in request.data['productimages']:
-            sentImageCount+=1
-            #print(f"sentImage: {sentImage['images']}")
+        if 'productimages' in request.data:
+            for sentImage in request.data['productimages']:
+                sentImageCount+=1
+                #print(f"sentImage: {sentImage['images']}")
         print(f"sentImageCount={sentImageCount}")
         count=0
         if sentImageCount>0 and ourImageCount>0:
@@ -282,4 +284,142 @@ class editProduct(UpdateModelMixin,generics.UpdateAPIView):
         response.data={
             'message':'test message.'
         }"""
+        return product
+
+
+
+#custom create model mixin
+api_settings = APISettings(None, DEFAULTS, IMPORT_STRINGS)
+class CreateModelMixin:
+    """
+    Create a model instance.
+    """
+    def create(self, request, *args, **kwargs):
+        #custom model Creation
+        token = self.request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        #print(users) #test ok
+        userserializer = customUserSerializer(users)
+        user_id=userserializer.data['id']
+        print(f"user id: {user_id}")
+        print(f"request.data: {request.data}")
+        
+        #adding into request.data
+        print(type(request.data)) #test ok.
+        request.data["users"] = users
+        print(f"updated request.data: {request.data}")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        #self.perform_create(serializer)
+
+        #custom creation of products
+        if 'color' in request.data:
+            "since color is optional"
+            tempProduct=Product(user=users,name=request.data["name"],price=request.data["price"],color=request.data["color"])
+        else:
+            tempProduct=Product(user=users,name=request.data["name"],price=request.data["price"])
+        tempProduct.save()
+
+        #custom creation of product images
+        if 'productimages' in request.data:
+            for sentImage in request.data['productimages']:
+                ""
+                print(sentImage['images']) #test ok.
+                image_url = sentImage['images']
+                #image.image_url=request.data['productimages'][count]['images']
+                img_temp = tempfile.NamedTemporaryFile(delete = True)
+                img_temp.write(urllib.request.urlopen(image_url).read())
+                img_temp.flush()
+                #image.images.save("image.png", File(img_temp))
+                #image.save()
+                tempProductImage=productImages(image_url=image_url)
+                tempProductImage.product=tempProduct
+                tempProductImage.images.save("image.png", File(img_temp))
+                tempProductImage.save()
+                print("image saved.")
+
+        headers = self.get_success_headers(serializer.data)
+        return Response({'msg':'Product added succesfully'}, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def get_success_headers(self, data):
+        try:
+            return {'Location': str(data[api_settings.URL_FIELD_NAME])}
+        except (TypeError, KeyError):
+            return {}
+class addProduct(CreateModelMixin,generics.CreateAPIView):
+    "All done via custom model mixin"
+    serializer_class = productCreateSerializer
+    #lookup_field="id"
+
+
+class searchProduct(generics.ListCreateAPIView):
+    serializer_class = productSerializer
+    def get_queryset(self):
+        token = self.request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Not authenticated.")
+        try:
+            payload = jwt.decode(token,'byte cipher', algorithm=['HS256']) 
+        except jwt.exceptions.ExpiredSignatureError:
+            raise AuthenticationFailed("Jwt Token expired")
+        users = CustomUser.objects.filter(id=payload['id']).first()
+        #print(users) #test ok
+        serializer = customUserSerializer(users)
+        #print(serializer.data['id'])  #test ok
+        #print(self.kwargs['id'])   #test ok
+
+        #self.kwargs['id'] #TODO
+        keyword = self.kwargs.get('keyword','Null*&^%$')
+        value = self.kwargs.get('value','Null*&^%$')
+        print(keyword)
+        print(type(value))
+        print(value)
+        posibleKeywords=['id','name','price','color']
+        if keyword in posibleKeywords:
+            ""
+            match keyword:
+                case "id":
+                    ""
+                    print("id case")
+                    try:
+                        id=int(value)
+                    except:
+                        raise NotAcceptable("We do not accept such values, Enter a proper id.") 
+                    print(f"id={id}")
+                    product = Product.objects.filter(user_id=serializer.data['id'],id=id)
+                case "name":
+                    ""
+                    print("name case")
+                    name=value
+                    product = Product.objects.filter(user_id=serializer.data['id'],name=name)
+                case "price":
+                    ""
+                    print("price case")
+                    try:
+                        price=int(value)
+                    except:
+                        raise NotAcceptable("We do not accept such values, Enter a proper price.") 
+                    print(f"price={price}")
+                    product = Product.objects.filter(user_id=serializer.data['id'],price=price)
+                case "color":
+                    ""
+                    print("color case")
+                    color=value
+                    product = Product.objects.filter(user_id=serializer.data['id'],color=color)
+        
+
+        if not product:
+            ""
+            raise NotFound("Your Search result yeilded 0 products.")
+        #print(product) #test ok!
         return product
