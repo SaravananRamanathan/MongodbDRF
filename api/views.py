@@ -20,6 +20,9 @@ import tempfile
 import  urllib.request 
 import requests
 from PIL import Image
+import urllib
+#import djangocorefilesbase.ContentFile
+from django.core.files.base import ContentFile
 class signUp(APIView):
     def post(self,request):
         "allow users to sign up via api"
@@ -222,10 +225,30 @@ class UpdateModelMixin:
             for image in images:
                 print(f"our-image: {image.images}")
                 print(f"sent-image: {request.data['productimages'][count]['images']}")
+                
                 #save image-
+                image.image_url=request.data['productimages'][count]['images']
+                img_temp = tempfile.NamedTemporaryFile(delete = True)
+                img_temp.write(urllib.request.urlopen(image.image_url).read())
+                img_temp.flush()
+                image.images.save("image.png", File(img_temp))
+                image.save()
+
+                print("image saved")
+                #  img_temp = tempfile.NamedTemporaryFile(delete=True)
+                # img_temp.write(urllib.request.urlopen(image.image_url).read())
+                # img_temp.flush()
+
+                # Image.file.save(image.images, File(img_temp))
+                #image.save()
+                #image_content = ContentFile(requests.get(image_url).content)  
+                #image.images=image_content
+                #image.save(force_insert=False, force_update=False,update_fields="images")
+                
+                #saved image - end of saving image
                 
                 count+=1;
-                if(count>sentImageCount):
+                if(count>=sentImageCount):
                     break;
             #print(f"ourImage: {image.images}")
             #img_temp = tempfile.NamedTemporaryFile(delete=True)
