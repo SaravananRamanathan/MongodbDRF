@@ -225,45 +225,16 @@ class UpdateModelMixin:
             for image in images:
                 print(f"our-image: {image.images}")
                 print(f"sent-image: {request.data['productimages'][count]['images']}")
-                
-                #save image-
                 image.image_url=request.data['productimages'][count]['images']
                 img_temp = tempfile.NamedTemporaryFile(delete = True)
                 img_temp.write(urllib.request.urlopen(image.image_url).read())
                 img_temp.flush()
                 image.images.save("image.png", File(img_temp))
                 image.save()
-
                 print("image saved")
-                #  img_temp = tempfile.NamedTemporaryFile(delete=True)
-                # img_temp.write(urllib.request.urlopen(image.image_url).read())
-                # img_temp.flush()
-
-                # Image.file.save(image.images, File(img_temp))
-                #image.save()
-                #image_content = ContentFile(requests.get(image_url).content)  
-                #image.images=image_content
-                #image.save(force_insert=False, force_update=False,update_fields="images")
-                
-                #saved image - end of saving image
-                
                 count+=1;
                 if(count>=sentImageCount):
                     break;
-            #print(f"ourImage: {image.images}")
-            #img_temp = tempfile.NamedTemporaryFile(delete=True)
-            #img_temp.write(urllib.request.urlopen(image).read())
-            #r = requests.get(image['images'] , stream=True)
-            #r.raw.decode_content = True # handle spurious Content-Encoding
-            #im = Image.open(r.raw)
-
-            #print(Image.open(r.raw)) #test ok
-
-            #img_temp.write(Image.open(r.raw))
-            #img_temp.flush()
-            
-            #im.file.save("productImage", File(img_temp))
-
 
         #performing both product and product images update.
         self.perform_update(serializer) 
@@ -306,17 +277,7 @@ class editProduct(UpdateModelMixin,generics.UpdateAPIView):
             ""
             raise NotFound("You dont have access to any product with that id.")
 
-        #saved_article = get_object_or_404(Article.objects.all(), pk=pk)
-
-        # name = self.request.data.get('name')
-        # serializer = productSerializer(instance=product, name=name, partial=True)
-        # if serializer.is_valid(raise_exception=True):
-        #     ""
-        #     return serializer
-
-        #article_saved = serializer.save()
-        #return Response({"success": "Article '{}' updated successfully".format(article_saved.title)})
-
+   
         """response = Response()
         response.data={
             'message':'test message.'
